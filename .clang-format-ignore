@@ -1,0 +1,3 @@
+# exclude third_party code from clang-format checks
+./externals
+./build
