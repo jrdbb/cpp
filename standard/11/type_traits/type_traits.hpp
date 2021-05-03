@@ -1,5 +1,5 @@
 namespace cpp {
-namespace std {
+namespace std11 {
 
 template <typename T, T v>
 struct integral_constant {
@@ -38,5 +38,5 @@ struct is_reference<T&> : true_type {};
 template <typename T>
 struct is_reference<T&&> : true_type {};
 
-}  // namespace std
+}  // namespace std11
 }  // namespace cpp
