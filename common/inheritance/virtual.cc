@@ -1,5 +1,6 @@
 #include "virtual.hpp"
 
+#include <cmath>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -7,8 +8,14 @@
 namespace cpp::common::inheritance {
 
 Integer::Integer(int i) : mValue(i) {
-    std::cout << "init integer " << i << std::endl;
+    std::cout << "init integer " << mValue << std::endl;
     mFlag = 'i';
+};
+
+Integer::Integer(double d) {
+    mValue = std::floor(d);
+    std::cout << "init integer " << mValue << std::endl;
+    mFlag = 'd';
 };
 
 NonPositiveInteger_V::NonPositiveInteger_V(int i) : Integer(i) {
@@ -42,7 +49,7 @@ NonNegativeInteger::NonNegativeInteger(int i) : Integer(i) {
 }
 
 ZeroInteger_V::ZeroInteger_V(int i)
-    : Integer(i), NonNegativeInteger_V(i), NonPositiveInteger_V(i) {}
+    : Integer(double(i)), NonPositiveInteger_V(i), NonNegativeInteger_V(i) {}
 
 ZeroInteger::ZeroInteger(int i)
     : NonNegativeInteger(i), NonPositiveInteger(i) {}

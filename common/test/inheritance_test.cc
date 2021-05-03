@@ -41,7 +41,7 @@ TEST_F(InheritanceTest, HowManyTimesIsConstructorInvoked) {
     EXPECT_CALL(*this, OnIntegerConstructor(_)).Times(1);
     inheritance::ZeroInteger_V i_v(0);
     Flush();
-    EXPECT_EQ(i_v.mFlag, 'p');  // in order
+    EXPECT_EQ(i_v.mFlag, 'p');  // in order in inheritance declaration
 }
 
 }  // namespace cpp::common::test

@@ -3,6 +3,7 @@ namespace cpp::common::inheritance {
 class Integer {
    public:
     Integer(int i);
+    Integer(double d);
     Integer(Integer const&) = default;
     virtual ~Integer() = default;
 
