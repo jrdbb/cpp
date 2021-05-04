@@ -11,6 +11,8 @@ class unique_ptr {
     unique_ptr() = default;
     explicit unique_ptr(T*);
     unique_ptr(unique_ptr<T>&& other);
+    template <typename U>
+    unique_ptr(unique_ptr<U>&& other);
     unique_ptr(const unique_ptr<T>&& other) = delete;
 
     unique_ptr(unique_ptr<T>& other) = delete;
@@ -19,6 +21,7 @@ class unique_ptr {
     ~unique_ptr();
 
     void reset(T*);
+    T* release();
 
     T& operator*();
     T& operator*() const;
@@ -37,8 +40,13 @@ unique_ptr<T>::unique_ptr(T* value) {
 
 template <typename T>
 unique_ptr<T>::unique_ptr(unique_ptr<T>&& other) {
-    reset(other.mValue);
-    other.mValue = nullptr;
+    reset(other.release());
+}
+
+template <typename T>
+template <typename U>
+unique_ptr<T>::unique_ptr(unique_ptr<U>&& other) {
+    reset(other.release());
 }
 
 template <typename T>
@@ -54,6 +62,13 @@ void unique_ptr<T>::reset(T* value) {
         delete mValue;
     }
     mValue = value;
+}
+
+template <typename T>
+T* unique_ptr<T>::release() {
+    auto* value = mValue;
+    mValue = nullptr;
+    return value;
 }
 
 template <typename T>
@@ -84,8 +99,7 @@ unique_ptr<T>& unique_ptr<T>::operator=(unique_ptr<T>&& other) {
 }
 
 template <typename T, typename... Arg>
-unique_ptr<T> make_unique(Arg&&... args)
-{
+unique_ptr<T> make_unique(Arg&&... args) {
     T* t = new T(std::forward<Arg>(args)...);
     return unique_ptr<T>(t);
 }

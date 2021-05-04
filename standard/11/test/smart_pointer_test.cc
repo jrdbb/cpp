@@ -11,6 +11,7 @@ using namespace testing;
 
 class TestObject {
    public:
+    TestObject() = default;
     TestObject(int i) : mValue(i) {}
 
     void Add() { mValue++; }
@@ -19,6 +20,11 @@ class TestObject {
     ~TestObject() { Die(); }
 
     int mValue;
+};
+
+class TestChild : public TestObject {
+   public:
+    TestChild() = default;
 };
 
 class UniquePointerTest : public Test {};
@@ -58,9 +64,7 @@ TEST_F(UniquePointerTest, Move) {
         unique_ptr<TestObject> t2(std::move(t1));
     }
 
-    {
-        unique_ptr<TestObject> t1((unique_ptr<TestObject>()));
-    }
+    { unique_ptr<TestObject> t1((unique_ptr<TestObject>())); }
 }
 
 TEST_F(UniquePointerTest, ConstPointer) {
@@ -69,7 +73,7 @@ TEST_F(UniquePointerTest, ConstPointer) {
         std::unique_ptr<const TestObject> up(p);
     }
     {
-        const TestObject*const p = new TestObject(1);
+        const TestObject* const p = new TestObject(1);
         const std::unique_ptr<const TestObject> up(p);
     }
     {
@@ -77,12 +81,18 @@ TEST_F(UniquePointerTest, ConstPointer) {
         unique_ptr<const TestObject> my_up(p);
     }
     {
-        const TestObject*const p = new TestObject(1);
+        const TestObject* const p = new TestObject(1);
         const unique_ptr<const TestObject> my_up(p);
         // invalid
-        // my_up->Add(); 
+        // my_up->Add();
         // auto my_up2 = std::move(my_up);
     }
+}
+
+TEST_F(UniquePointerTest, Conversion) {
+    auto p = make_unique<TestChild>();
+    auto f = [](unique_ptr<TestObject> p) {};
+    f(std::move(p));
 }
 
 }  // namespace test
