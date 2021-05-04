@@ -1,6 +1,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <smart_pointer/unique_pointer.hpp>
 
 namespace cpp {
@@ -12,25 +13,27 @@ class TestObject {
    public:
     TestObject(int i) : mValue(i) {}
 
+    void Add() { mValue++; }
+    int Get() { return mValue; }
     MOCK_METHOD(void, Die, ());
     ~TestObject() { Die(); }
 
     int mValue;
 };
 
-class SmartPointerTest : public Test {};
+class UniquePointerTest : public Test {};
 
-TEST_F(SmartPointerTest, Initialize) {
+TEST_F(UniquePointerTest, Initialize) {
     {
-        unique_ptr<TestObject> t(99);
+        auto t = make_unique<TestObject>(99);
         EXPECT_EQ(t->mValue, 99);
         EXPECT_CALL(*t, Die()).Times(1);
     }
 }
 
-TEST_F(SmartPointerTest, Reset) {
+TEST_F(UniquePointerTest, Reset) {
     {
-        unique_ptr<TestObject> t(99);
+        auto t = make_unique<TestObject>(99);
         EXPECT_EQ(t->mValue, 99);
         EXPECT_CALL(*t, Die()).Times(1);
         t.reset(new TestObject(108));
@@ -39,21 +42,46 @@ TEST_F(SmartPointerTest, Reset) {
     }
 }
 
-TEST_F(SmartPointerTest, Move) {
+TEST_F(UniquePointerTest, Move) {
     {
-        unique_ptr<TestObject> t1(99);
-
-        unique_ptr<TestObject> t2(199);
+        auto t1 = make_unique<TestObject>(99);
+        auto t2 = make_unique<TestObject>(199);
 
         EXPECT_CALL(*t2, Die()).Times(1);
         t2 = std::move(t1);
     }
 
     {
-        unique_ptr<TestObject> t1(99);
+        auto t1 = make_unique<TestObject>(99);
         EXPECT_CALL(*t1, Die()).Times(1);
 
         unique_ptr<TestObject> t2(std::move(t1));
+    }
+
+    {
+        unique_ptr<TestObject> t1((unique_ptr<TestObject>()));
+    }
+}
+
+TEST_F(UniquePointerTest, ConstPointer) {
+    {
+        const TestObject* p = new TestObject(1);
+        std::unique_ptr<const TestObject> up(p);
+    }
+    {
+        const TestObject*const p = new TestObject(1);
+        const std::unique_ptr<const TestObject> up(p);
+    }
+    {
+        const TestObject* p = new TestObject(1);
+        unique_ptr<const TestObject> my_up(p);
+    }
+    {
+        const TestObject*const p = new TestObject(1);
+        const unique_ptr<const TestObject> my_up(p);
+        // invalid
+        // my_up->Add(); 
+        // auto my_up2 = std::move(my_up);
     }
 }
 

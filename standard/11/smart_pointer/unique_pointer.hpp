@@ -8,14 +8,13 @@ namespace std11 {
 template <typename T>
 class unique_ptr {
    public:
-    unique_ptr(T*);
+    unique_ptr() = default;
+    explicit unique_ptr(T*);
     unique_ptr(unique_ptr<T>&& other);
+    unique_ptr(const unique_ptr<T>&& other) = delete;
 
     unique_ptr(unique_ptr<T>& other) = delete;
     unique_ptr(const unique_ptr<T>& other) = delete;
-
-    template <typename... Arg>
-    unique_ptr(Arg&&... args);
 
     ~unique_ptr();
 
@@ -40,12 +39,6 @@ template <typename T>
 unique_ptr<T>::unique_ptr(unique_ptr<T>&& other) {
     reset(other.mValue);
     other.mValue = nullptr;
-}
-
-template <typename T>
-template <typename... Arg>
-unique_ptr<T>::unique_ptr(Arg&&... args) {
-    mValue = new T(std::forward<Arg>(args)...);
 }
 
 template <typename T>
@@ -88,6 +81,13 @@ unique_ptr<T>& unique_ptr<T>::operator=(unique_ptr<T>&& other) {
     reset(other.mValue);
     other.mValue = nullptr;
     return *this;
+}
+
+template <typename T, typename... Arg>
+unique_ptr<T> make_unique(Arg&&... args)
+{
+    T* t = new T(std::forward<Arg>(args)...);
+    return unique_ptr<T>(t);
 }
 
 }  // namespace std11
