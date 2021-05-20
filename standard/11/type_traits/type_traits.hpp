@@ -1,4 +1,5 @@
-namespace cpp::std {
+namespace cpp {
+namespace std {
 
 template <typename T, T v>
 struct integral_constant {
@@ -37,4 +38,5 @@ struct is_reference<T&> : true_type {};
 template <typename T>
 struct is_reference<T&&> : true_type {};
 
-}  // namespace cpp::std
+}  // namespace std
+}  // namespace cpp

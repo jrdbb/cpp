@@ -3,7 +3,9 @@
 
 #include <type_traits/type_traits.hpp>
 
-namespace cpp::std::test {
+namespace cpp {
+namespace std {
+namespace test {
 using namespace testing;
 
 class TypeTraitsTest : public Test {};
@@ -14,4 +16,6 @@ TEST_F(TypeTraitsTest, IsSame) {
     EXPECT_EQ((is_same<int&, int&&>()), false);
 }
 
-}  // namespace cpp::std::test
+}  // namespace test
+}  // namespace std
+}  // namespace cpp
