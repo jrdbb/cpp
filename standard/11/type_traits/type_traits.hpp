@@ -1,6 +1,6 @@
 namespace cpp::std {
 
-template <class T, T v>
+template <typename T, T v>
 struct integral_constant {
     static constexpr T value = v;
     using value_type = T;
@@ -13,10 +13,28 @@ struct integral_constant {
 using false_type = integral_constant<bool, false>;
 using true_type = integral_constant<bool, true>;
 
-template <class T, class U>
+template <typename T, typename U>
 struct is_same : false_type {};
 
-template <class T>
+template <typename T>
 struct is_same<T, T> : true_type {};
+
+template <typename T>
+struct is_array : false_type {};
+
+template <typename T>
+struct is_array<T[]> : true_type {};
+
+template <typename T, ::std::size_t N>
+struct is_array<T[N]> : true_type {};
+
+template <typename T>
+struct is_reference : false_type {};
+
+template <typename T>
+struct is_reference<T&> : true_type {};
+
+template <typename T>
+struct is_reference<T&&> : true_type {};
 
 }  // namespace cpp::std
