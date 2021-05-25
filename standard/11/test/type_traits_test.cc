@@ -4,7 +4,7 @@
 #include <type_traits/type_traits.hpp>
 
 namespace cpp {
-namespace std {
+namespace std11 {
 namespace test {
 using namespace testing;
 
@@ -17,5 +17,5 @@ TEST_F(TypeTraitsTest, IsSame) {
 }
 
 }  // namespace test
-}  // namespace std
+}  // namespace std11
 }  // namespace cpp

@@ -1,8 +1,8 @@
 project(cpp11_test)
 
-aux_source_directory(. TEST_SRCS)
+aux_source_directory(. SRCS)
 
-add_executable(${PROJECT_NAME} ${TEST_SRCS})
+add_executable(${PROJECT_NAME} ${SRCS})
 target_link_libraries(${PROJECT_NAME} gtest gmock cpp11)
 
 set_target_properties(${PROJECT_NAME}

@@ -4,6 +4,8 @@ project(cpp VERSION 1.0)
 
 cmake_minimum_required(VERSION 3.16)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 enable_testing()
 
 add_subdirectory(common)
