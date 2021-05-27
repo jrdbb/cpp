@@ -1,7 +1,6 @@
 #pragma once
 
 #include <utility>
-#include <memory>
 
 namespace cpp {
 namespace std11 {
