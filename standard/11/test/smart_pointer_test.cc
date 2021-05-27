@@ -9,6 +9,7 @@ namespace std11 {
 namespace test {
 using namespace testing;
 
+namespace {
 class TestObject {
    public:
     TestObject() = default;
@@ -21,6 +22,7 @@ class TestObject {
 
     int mValue;
 };
+}  // namespace
 
 class TestChild : public TestObject {
    public:
