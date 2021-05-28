@@ -64,13 +64,28 @@ class vector {
      */
     T& at(size_t n);
     const T& at(size_t n) const;
+    /*
+     * Returns a reference to the first element in the vector.
+     * Calling this function on an empty container causes undefined behavior.
+     */
+    T& front();
+    const T& front() const;
+    T& back();
+    const T& back() const;
+    T* data() noexcept;
+    const T* data() const noexcept;
+    void assign(size_t n, const T& val);
+    // void assign (initializer_list<value_type> il);
+
+    void push_back(const T& val);
+    void push_back(T&& val);
 
    private:
     struct vector_data {
-        T* begin;
-        size_t used;
-        size_t storage;
-        vector_data() : begin(), used(0), storage(0) {}
+        T* begin = nullptr;
+        size_t used = 0;
+        size_t storage = 0;
+        vector_data() {}
         ~vector_data() {
             if (begin) delete[] begin;
         }

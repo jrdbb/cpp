@@ -159,4 +159,57 @@ const T& vector<T>::at(size_t n) const {
     return mvector_data.begin[n];
 }
 
+template <typename T>
+T& vector<T>::front() {
+    return mvector_data.begin[0];
+}
+
+template <typename T>
+const T& vector<T>::front() const {
+    return mvector_data.begin[0];
+}
+
+template <typename T>
+T& vector<T>::back() {
+    return mvector_data.begin[mvector_data.used - 1];
+}
+
+template <typename T>
+const T& vector<T>::back() const {
+    return mvector_data.begin[mvector_data.used - 1];
+}
+
+template <typename T>
+T* vector<T>::data() noexcept {
+    return mvector_data.begin;
+}
+
+template <typename T>
+const T* vector<T>::data() const noexcept {
+    return mvector_data.begin;
+}
+
+template <typename T>
+void vector<T>::assign(size_t n, const T& val) {
+    *this = vector_data(n, val);
+}
+
+template <typename T>
+void vector<T>::push_back(const T& val) {
+    if (mvector_data.used == mvector_data.capacity) {
+        reserve(mvector_data.used + 1);
+    }
+    auto* ele = new (mvector_data.begin + mvector_data.used) T(val);
+    mvector_data.used++;
+}
+
+template <typename T>
+void vector<T>::push_back(T&& val) {
+    if (mvector_data.used == mvector_data.capacity) {
+        reserve(mvector_data.used + 1);
+    }
+    auto* ele = new (mvector_data.begin + mvector_data.used) T(val);
+    mvector_data.used++;
+}
+
 }  // namespace cpp::common::container
