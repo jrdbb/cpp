@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <vector>
 
 namespace cpp::common::container {
@@ -51,6 +52,18 @@ class vector {
      * greater than its size.
      */
     void shrink_to_fit();
+    T& operator[](size_t n);
+    const T& operator[](size_t n) const;
+
+    /*
+     * The function automatically checks whether n is within the bounds
+     * of valid elements in the vector, throwing an out_of_range
+     * exception if it is not (i.e., if n is greater than, or equal to,
+     * its size). This is in contrast with member operator[], that does
+     * not check against bounds.
+     */
+    T& at(size_t n);
+    const T& at(size_t n) const;
 
    private:
     struct vector_data {

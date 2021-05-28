@@ -132,4 +132,31 @@ void vector<T>::shrink_to_fit() {
         mvector_data.storage = new_storage;
     }
 }
+
+template <typename T>
+T& vector<T>::operator[](size_t n) {
+    return mvector_data.begin[n];
+}
+
+template <typename T>
+const T& vector<T>::operator[](size_t n) const {
+    return mvector_data.begin[n];
+}
+
+template <typename T>
+T& vector<T>::at(size_t n) {
+    if (n < 0 || n >= mvector_data.used) {
+        throw std::out_of_range();
+    }
+    return mvector_data.begin[n];
+}
+
+template <typename T>
+const T& vector<T>::at(size_t n) const {
+    if (n < 0 || n >= mvector_data.used) {
+        throw std::out_of_range();
+    }
+    return mvector_data.begin[n];
+}
+
 }  // namespace cpp::common::container
