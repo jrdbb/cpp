@@ -11,9 +11,11 @@ class TestObject {
    public:
     MOCK_METHOD(void, NoParamConstructor, ());
     TestObject() { NoParamConstructor(); }
+    TestObject(int i) : mValue(i) {}
     TestObject(const TestObject&) {}
     MOCK_METHOD(void, Die, ());
     ~TestObject() { Die(); }
+    int mValue;
 };
 
 class VectorTest : public Test {};
@@ -31,6 +33,17 @@ TEST_F(VectorTest, Resize) {
         stdvec.resize(5);
         std::cout << stdvec.capacity() << std::endl;
     }
+}
+
+TEST_F(VectorTest, Init) {
+    std::vector<TestObject> stdvecNoParamInit(5);
+    std::cout << stdvecNoParamInit.capacity() << std::endl;
+
+    std::vector<TestObject> stdvecParamInit(5, 1);
+    std::cout << stdvecParamInit.capacity() << std::endl;
+
+    std::vector<TestObject> stdvecVecInit(stdvecParamInit);
+    std::cout << stdvecParamInit.capacity() << std::endl;
 }
 
 }  // namespace cpp::common::test

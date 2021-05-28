@@ -17,16 +17,15 @@ static size_t calculate_storage(size_t size) {
 template <typename T>
 vector<T>::vector(size_t n) {
     mvector_data.begin = new T[n];
+    mvector_data.used = n;
     mvector_data.storage = n;
 }
 
 template <typename T>
 vector<T>::vector(size_t n, const T& val) {
-    size_t new_storage = calculate_storage(n);
-    mvector_data.begin = new T[new_storage](val);
-
+    mvector_data.begin = new T[n](val);
     mvector_data.used = n;
-    mvector_data.storage = new_storage;
+    mvector_data.storage = n;
 }
 
 template <typename T>
@@ -49,9 +48,9 @@ size_t vector<T>::size() const noexcept {
 
 template <typename T>
 vector<T>& vector<T>::operator=(const vector<T>& rhs) {
-    mvector_data.begin = new T[rhs.mvector_data.storage];
+    mvector_data.begin = malloc(rhs.mvector_data.storage * sizeof(T));
     for (size_t index = 0; index < mvector_data.used; ++index) {
-        mvector_data.begin[index] = rhs.mvector_data.begin[index];
+        auto* ele = new (mvector_data.begin + index) T(rhs.mvector_data[index]);
     }
     mvector_data.used = rhs.mvector_data.used;
     mvector_data.storage = rhs.mvector_data.storage;
@@ -71,16 +70,26 @@ vector<T>& vector<T>::operator=(vector<T>&& rhs) {
 template <typename T>
 void vector<T>::resize(size_t n) {
     reserve(n);
+    for (size_t index = mvector_data.used; index < n; ++index) {
+        T* ele = new (mvector_data.begin + index) T();
+    }
+    for (size_t index = n; index < mvector_data.used; ++index) {
+        T* ele = &mvector_data.begin[index];
+        mvector_data.begin[index].~T();
+    }
     mvector_data.used = n;
 }
 
 template <typename T>
 void vector<T>::resize(size_t n, const T& val) {
-    size_t used = mvector_data.used;
-    resize(n);
-    for (size_t index = used; index < n; ++index) {
-        mvector_data[index] = val;
+    reserve(n);
+    for (size_t index = mvector_data.used; index < n; ++index) {
+        auto* ele = new (mvector_data.begin + index) T(val);
     }
+    for (size_t index = n; index < mvector_data.used; ++index) {
+        mvector_data.begin[index].~T();
+    }
+    mvector_data.used = n;
 }
 
 template <typename T>
@@ -97,9 +106,9 @@ template <typename T>
 void vector<T>::reserve(size_t n) {
     if (mvector_data.storage < n) {
         size_t new_storage = calculate_storage(n);
-        T* temp = new T[new_storage];
+        T* temp = malloc(new_storage * sizeof(T));
         for (size_t index = 0; index < mvector_data.used; ++index) {
-            temp[index] = mvector_data.begin[index];
+            auto* ele = new (temp + index) T(mvector_data.begin[index]);
         }
 
         delete[] mvector_data.begin;
@@ -112,10 +121,10 @@ template <typename T>
 void vector<T>::shrink_to_fit() {
     size_t new_storage = calculate_storage(mvector_data.used);
     if (new_storage != mvector_data.storage) {
-        T* temp = new T[new_storage];
+        T* temp = malloc(new_storage * sizeof(T));
 
         for (size_t index = 0; index < mvector_data.used; ++index) {
-            temp[index] = mvector_data.begin[index];
+            auto* ele = new (temp + index) T(mvector_data.begin[index]);
         }
 
         delete[] mvector_data.begin;
