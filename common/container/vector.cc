@@ -212,4 +212,17 @@ void vector<T>::push_back(T&& val) {
     mvector_data.used++;
 }
 
+template <typename T>
+void vector<T>::pop_back() {
+    mvector_data.mbegin[used - 1].~T();
+    mvector_data.used--;
+}
+
+template <typename T>
+void vector<T>::swap(vector& x) {
+    std::swap(mvector_data.begin, x.mvector_data.begin);
+    std::swap(mvector_data.used, x.mvector_data.used);
+    std::swap(mvector_data.storage, x.mvector_data.storage);
+}
+
 }  // namespace cpp::common::container

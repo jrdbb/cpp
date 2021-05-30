@@ -79,8 +79,7 @@ TEST_F(VectorTest, PushBack) {
 TEST_F(VectorTest, PopBack) {
     std::vector<TestObject> stdvec;
     stdvec.reserve(1);
-    stdvec.pop_back();
-    // stdvec.pop_back();
+    EXPECT_DEATH(stdvec.pop_back());
 }
 
 }  // namespace cpp::common::test

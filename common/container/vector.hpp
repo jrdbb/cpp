@@ -79,6 +79,9 @@ class vector {
 
     void push_back(const T& val);
     void push_back(T&& val);
+    void pop_back();
+
+    void swap(vector& x);
 
    private:
     struct vector_data {
