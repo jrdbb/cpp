@@ -81,7 +81,20 @@ class vector {
     void push_back(T&& val);
     void pop_back();
 
+    // iterator insert (const_iterator position, const value_type& val);
+    // iterator insert (const_iterator position, size_type n, const value_type&
+    // val); template <class InputIterator> iterator insert (const_iterator
+    // position, InputIterator first, InputIterator last); iterator insert
+    // (const_iterator position, value_type&& val); iterator insert
+    // (const_iterator position, initializer_list<value_type> il); iterator
+    // erase (const_iterator position); iterator erase (const_iterator first,
+    // const_iterator last);
     void swap(vector& x);
+    void clear() noexcept;
+    // template <class... Args>
+    // iterator emplace (const_iterator position, Args&&... args);
+    // template <class... Args>
+    //   void emplace_back (Args&&... args);
 
    private:
     struct vector_data {

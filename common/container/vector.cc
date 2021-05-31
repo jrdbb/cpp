@@ -214,7 +214,7 @@ void vector<T>::push_back(T&& val) {
 
 template <typename T>
 void vector<T>::pop_back() {
-    mvector_data.mbegin[used - 1].~T();
+    mvector_data.mbegin[mvector_data.used - 1].~T();
     mvector_data.used--;
 }
 
@@ -223,6 +223,14 @@ void vector<T>::swap(vector& x) {
     std::swap(mvector_data.begin, x.mvector_data.begin);
     std::swap(mvector_data.used, x.mvector_data.used);
     std::swap(mvector_data.storage, x.mvector_data.storage);
+}
+
+template <typename T>
+void vector<T>::clear() noexcept {
+    for (int index = mvector_data.used - 1; index >= 0; ++index) {
+        mvector_data.begin[index].~T();
+    }
+    mvector_data.used = 0;
 }
 
 }  // namespace cpp::common::container
