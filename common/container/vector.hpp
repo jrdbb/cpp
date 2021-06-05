@@ -110,7 +110,6 @@ class vector {
     vector_data mvector_data;
 };
 
-
 static size_t calculate_storage(size_t size) {
     /*
      * if on x86
@@ -133,7 +132,7 @@ vector<T>::vector(size_t n) {
 template <typename T>
 vector<T>::vector(size_t n, const T& val) {
     mvector_data.begin = new T[n];
-    for(int i;i< n; ++i){
+    for (int i; i < n; ++i) {
         mvector_data.begin[i] = val;
     }
     mvector_data.used = n;
