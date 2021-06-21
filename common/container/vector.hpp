@@ -104,7 +104,7 @@ class vector {
         size_t storage = 0;
         vector_data() {}
         ~vector_data() {
-            if (begin) delete[] begin;
+            if (begin) free(begin);
         }
     };
     vector_data mvector_data;
@@ -124,16 +124,19 @@ static size_t calculate_storage(size_t size) {
 
 template <typename T>
 vector<T>::vector(size_t n) {
-    mvector_data.begin = new T[n];
+    mvector_data.begin = (T*)malloc(n*sizeof(T));
+    for(size_t i = 0; i <n ; ++i) {
+        new (mvector_data.begin + i) T();
+    }
     mvector_data.used = n;
     mvector_data.storage = n;
 }
 
 template <typename T>
 vector<T>::vector(size_t n, const T& val) {
-    mvector_data.begin = new T[n];
-    for (int i; i < n; ++i) {
-        mvector_data.begin[i] = val;
+    mvector_data.begin = (T*)malloc(n*sizeof(T));
+    for (size_t i = 0; i < n; ++i) {
+        new (mvector_data.begin + i) T(val);
     }
     mvector_data.used = n;
     mvector_data.storage = n;
@@ -222,10 +225,10 @@ void vector<T>::reserve(size_t n) {
             auto* ele = new (temp + index) T(mvector_data.begin[index]);
         }
 
-        delete[] mvector_data.begin;
+        free(mvector_data.begin);
         mvector_data.begin = temp;
         mvector_data.storage = new_storage;
-    }
+    }   
 }
 
 template <typename T>
@@ -238,7 +241,7 @@ void vector<T>::shrink_to_fit() {
             auto* ele = new (temp + index) T(mvector_data.begin[index]);
         }
 
-        delete[] mvector_data.begin;
+        free(mvector_data.begin);
         mvector_data.begin = temp;
         mvector_data.storage = new_storage;
     }
@@ -312,7 +315,7 @@ void vector<T>::push_back(const T& val) {
     }
     auto* ele = new (mvector_data.begin + mvector_data.used) T(val);
     mvector_data.used++;
-}
+    }
 
 template <typename T>
 void vector<T>::push_back(T&& val) {
@@ -325,7 +328,7 @@ void vector<T>::push_back(T&& val) {
 
 template <typename T>
 void vector<T>::pop_back() {
-    mvector_data.mbegin[mvector_data.used - 1].~T();
+    mvector_data.begin[mvector_data.used - 1].~T();
     mvector_data.used--;
 }
 
@@ -338,7 +341,7 @@ void vector<T>::swap(vector& x) {
 
 template <typename T>
 void vector<T>::clear() noexcept {
-    for (int index = mvector_data.used - 1; index >= 0; ++index) {
+    for (size_t index = mvector_data.used - 1; index >= 0; --index) {
         mvector_data.begin[index].~T();
     }
     mvector_data.used = 0;
