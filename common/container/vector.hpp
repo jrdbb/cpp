@@ -109,8 +109,8 @@ class vector {
             }
             if (begin) free(begin);
         }
-        void destroy_memory(){
-            for(size_t i = 0; i< used; ++i){
+        void destroy_memory() {
+            for (size_t i = 0; i < used; ++i) {
                 begin[i].~T();
             }
             free(begin);
@@ -129,6 +129,24 @@ static size_t calculate_storage(size_t size) {
         storage = storage << 1;
     }
     return storage;
+}
+
+template <typename T>
+bool operator==(const vector<T>& lhs, const vector<T>& rhs) {
+    if (lhs.size() != rhs.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < lhs.size(); ++i) {
+        if (lhs[i] != rhs[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <typename T>
+bool operator!=(const vector<T>& lhs, const vector<T>& rhs) {
+    return !(lhs == rhs);
 }
 
 template <typename T>
@@ -172,11 +190,12 @@ size_t vector<T>::size() const noexcept {
 template <typename T>
 vector<T>& vector<T>::operator=(const vector<T>& rhs) {
     mvector_data.begin = (T*)malloc(rhs.mvector_data.storage * sizeof(T));
-    for (size_t index = 0; index < mvector_data.used; ++index) {
-        auto* ele = new (mvector_data.begin + index) T(rhs.mvector_data[index]);
+    for (size_t index = 0; index < rhs.size(); ++index) {
+        new (mvector_data.begin + index) T(rhs[index]);
     }
     mvector_data.used = rhs.mvector_data.used;
     mvector_data.storage = rhs.mvector_data.storage;
+    return *this;
 }
 
 template <typename T>
@@ -331,7 +350,7 @@ void vector<T>::push_back(T&& val) {
     if (mvector_data.used == mvector_data.storage) {
         reserve(mvector_data.used + 1);
     }
-    auto* ele = new (mvector_data.begin + mvector_data.used) T(val);
+    auto* ele = new (mvector_data.begin + mvector_data.used) T(std::move(val));
     mvector_data.used++;
 }
 

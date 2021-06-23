@@ -24,7 +24,12 @@ class TestObject {
     TestObject(const TestObject& testObj) : mValue(testObj.mValue) {
         mStub.CopyConstructor();
     }
+    TestObject(TestObject&& testObj) : mValue(testObj.mValue) {
+        testObj.mValue = 0;
+        mStub.MoveConstructor();
+    }
     bool operator==(const TestObject& rhs) { return mValue == rhs.mValue; }
+    bool operator!=(const TestObject& rhs) { return mValue != rhs.mValue; }
     // MOCK_METHOD(void, Die, ());
     ~TestObject() {
         // Die();
@@ -38,6 +43,10 @@ bool operator==(const TestObject& lhs, const TestObject& rhs) {
     return lhs.mValue == rhs.mValue;
 }
 
+bool operator!=(const TestObject& lhs, const TestObject& rhs) {
+    return lhs.mValue != rhs.mValue;
+}
+
 template <typename T>
 class VectorTest : public Test {
    protected:
@@ -49,49 +58,6 @@ using VectorTypes =
     ::testing::Types<container::vector<TestObject>, std::vector<TestObject>>;
 
 TYPED_TEST_SUITE(VectorTest, VectorTypes);
-// TYPED_TEST(VectorTest, Resize) {
-//     {
-//         EXPECT_CALL(*stub, NoParamConstructor()).Times(6);
-//         EXPECT_CALL(*stub, CopyConstructor()).Times(6);
-//         EXPECT_CALL(*stub, Die()).Times(6);
-
-//         /*
-//          * 1st: resize to 1, copyconstructor[0]
-//          * 2nd: resize to 2, copyconstructor[0] to [0],
-//          delete[0],copyconstructor[1]
-//          * 3rd: resize to 4, copyconstructor[0][1] to
-//          [0][1],delete[0][1],copyconstructor[2]
-//          */
-//         for(int i = 0; i<3;++i){
-//             this->mDefaultVec.push_back(TestObject());
-//         }
-
-//         // EXPECT_EQ(this->mDefaultVec.capacity(), 4);
-
-//         // EXPECT_EQ(this->mDefaultVec.capacity(), 8);
-//         // auto* t = &this->mDefaultVec[5];
-//         // EXPECT_CALL(*t, Die()).Times(1);
-//         // this->mDefaultVec.resize(5);
-//         // EXPECT_EQ(this->mDefaultVec.capacity(), 8);
-
-//     }
-// }
-
-// TYPED_TEST(VectorTest, Init) {
-//     TypeParam vec(5);
-//     // EXPECT_EQ(vec.size(), 5);
-//     // EXPECT_DOUBLE_EQ
-//     // this->InitTest(5);
-//     // EXPECT_EQ(this->vec.capacity(), 10);
-//     // std::vector<TestObject> stdvecNoParamInit(5);
-//     // std::cout << stdvecNoParamInit.capacity() << std::endl;
-
-//     // std::vector<TestObject> stdvecParamInit(5, 1);
-//     // std::cout << stdvecParamInit.capacity() << std::endl;
-
-//     // std::vector<TestObject> stdvecVecInit(stdvecParamInit);
-//     // std::cout << stdvecParamInit.capacity() << std::endl;
-// }
 
 TYPED_TEST(VectorTest, SizeInit) {
     {
@@ -108,12 +74,12 @@ TYPED_TEST(VectorTest, SizeInit) {
     }
 }
 
-TYPED_TEST(VectorTest, SizeAndValueInit){
+TYPED_TEST(VectorTest, SizeAndValueInit) {
     {
         EXPECT_CALL(*stub, IntParamConstructor()).Times(1);
         TestObject testObj(5);
         EXPECT_CALL(*stub, CopyConstructor()).Times(5);
-        TypeParam vec1(5,testObj);//, vec2(vec1);
+        TypeParam vec1(5, testObj);
         EXPECT_EQ(vec1.size(), 5);
 
         for (size_t i = 0; i < vec1.size(); ++i) {
@@ -123,7 +89,56 @@ TYPED_TEST(VectorTest, SizeAndValueInit){
     }
 }
 
+TYPED_TEST(VectorTest, CopyInit) {
+    {
+        EXPECT_CALL(*stub, NoParamConstructor()).Times(5);
+        TypeParam vec(5);
 
+        for (size_t i = 0; i < vec.size(); ++i) {
+            vec[i].mValue = i;
+        }
+
+        EXPECT_CALL(*stub, CopyConstructor()).Times(5);
+        TypeParam copyVec(vec);
+        EXPECT_EQ(copyVec, vec);
+        EXPECT_CALL(*stub, Die()).Times(10);
+    }
+}
+
+// TODO: MoveInit
+
+TYPED_TEST(VectorTest, Reserve) {
+    {
+        EXPECT_CALL(*stub, NoParamConstructor()).Times(10);
+        TypeParam vecLarger(5), vecSmaller(5);
+        int oldCapacity = vecLarger.capacity();
+
+        EXPECT_CALL(*stub, CopyConstructor()).Times(5);
+        EXPECT_CALL(*stub, Die()).Times(5);
+        vecLarger.reserve(2 * oldCapacity);
+        EXPECT_GE(vecLarger.capacity(), 2 * oldCapacity);
+        EXPECT_EQ(vecLarger, vecSmaller);
+
+        vecSmaller.reserve(0.5 * oldCapacity);
+        EXPECT_EQ(vecSmaller.capacity(), oldCapacity);
+
+        EXPECT_CALL(*stub, Die()).Times(10);
+    }
+}
+
+TYPED_TEST(VectorTest, ShrinkToFit) {
+    {
+        EXPECT_CALL(*stub, NoParamConstructor()).Times(100);
+        TypeParam vec1(50), vec2(50);
+
+        for (size_t i = 0; i < vec1.size() - 1; ++i) {
+            vec1.pop_back();
+            vec2.pop_back();
+        }
+        vec1.shrink_to_fit();
+        EXPECT_EQ(vec1, vec2);
+    }
+}
 
 TYPED_TEST(VectorTest, FrontAndBack) {
     {
@@ -149,19 +164,28 @@ TYPED_TEST(VectorTest, PushBack) {
         EXPECT_CALL(*stub, IntParamConstructor()).Times(2);
         TestObject testObj1(1), testObj2(2);
 
-        EXPECT_CALL(*stub, CopyConstructor()).Times(3);
+        EXPECT_CALL(*stub, CopyConstructor()).Times(1);
 
         vec.push_back(testObj1);
         EXPECT_EQ(vec.size(), 1);
         EXPECT_EQ(vec[0], testObj1);
 
         // reverse then add to tail
+        EXPECT_CALL(*stub, CopyConstructor()).Times(2);
         EXPECT_CALL(*stub, Die()).Times(1);
         vec.push_back(testObj2);
         EXPECT_EQ(vec.size(), 2);
         EXPECT_EQ(vec[1], testObj2);
 
-        EXPECT_CALL(*stub, Die()).Times(4);
+        EXPECT_CALL(*stub, CopyConstructor()).Times(2);
+        EXPECT_CALL(*stub, MoveConstructor()).Times(1);
+        EXPECT_CALL(*stub, Die()).Times(2);
+        vec.push_back(std::move(testObj2));
+        EXPECT_EQ(vec.size(), 3);
+        EXPECT_EQ(vec[2], vec[1]);
+        EXPECT_EQ(testObj2.mValue, 0);
+
+        EXPECT_CALL(*stub, Die()).Times(5);
     }
 }
 
