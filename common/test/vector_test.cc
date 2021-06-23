@@ -112,20 +112,29 @@ TYPED_TEST(VectorTest, FrontAndBack) {
 
 TYPED_TEST(VectorTest, PushBack) {
     {
-        EXPECT_CALL(stub, NoParamConstructor).Times(2);
         TypeParam vec;
-        vec.reserve(2);
-        EXPECT_CALL(stub, IntParamConstructor()).Times(1);
-        TestObject testObj(11);
+        EXPECT_CALL(stub, IntParamConstructor()).Times(2);
+        TestObject testObj1(1), testObj2(2);
 
         EXPECT_CALL(stub, CopyConstructor()).Times(2);
-        vec.push_back(testObj);
-        vec.push_back(testObj);
-        EXPECT_EQ(vec.size(), 2);
-        EXPECT_EQ(vec[0], testObj);
-        EXPECT_EQ(vec[1], testObj);
 
-        EXPECT_CALL(stub, Die()).Times(3);
+        vec.push_back(testObj1);
+        EXPECT_EQ(vec.size(), 1);
+        EXPECT_EQ(vec[0], testObj1);
+
+        EXPECT_CALL(stub, Die()).Times(4);
+    }
+    {
+        EXPECT_CALL(stub, NoParamConstructor()).Times(1);
+        TypeParam vec(1);
+        EXPECT_CALL(stub, IntParamConstructor()).Times(1);
+        TestObject testObj1(1);
+
+        EXPECT_CALL(stub, CopyConstructor()).Times(3);
+        vec.push_back(testObj1);
+        EXPECT_EQ(vec.back(), testObj1);
+
+        EXPECT_CALL(stub, Die()).Times(5);
     }
 }
 
