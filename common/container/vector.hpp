@@ -109,6 +109,12 @@ class vector {
             }
             if (begin) free(begin);
         }
+        void destroy_memory(){
+            for(size_t i = 0; i< used; ++i){
+                begin[i].~T();
+            }
+            free(begin);
+        }
     };
     vector_data mvector_data;
 };
@@ -228,7 +234,7 @@ void vector<T>::reserve(size_t n) {
             auto* ele = new (temp + index) T(mvector_data.begin[index]);
         }
 
-        free(mvector_data.begin);
+        mvector_data.destroy_memory();
         mvector_data.begin = temp;
         mvector_data.storage = new_storage;
     }
@@ -244,7 +250,7 @@ void vector<T>::shrink_to_fit() {
             auto* ele = new (temp + index) T(mvector_data.begin[index]);
         }
 
-        free(mvector_data.begin);
+        mvector_data.destroy_memory();
         mvector_data.begin = temp;
         mvector_data.storage = new_storage;
     }
