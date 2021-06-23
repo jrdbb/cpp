@@ -104,6 +104,9 @@ class vector {
         size_t storage = 0;
         vector_data() {}
         ~vector_data() {
+            for (size_t i = 0; i < used; ++i) {
+                begin[i].~T();
+            }
             if (begin) free(begin);
         }
     };
