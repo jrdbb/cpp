@@ -131,12 +131,17 @@ TYPED_TEST(VectorTest, ShrinkToFit) {
         EXPECT_CALL(*stub, NoParamConstructor()).Times(100);
         TypeParam vec1(50), vec2(50);
 
-        for (size_t i = 0; i < vec1.size() - 1; ++i) {
+        EXPECT_CALL(*stub, Die()).Times(98);
+        for (size_t i = 0; i < 49; ++i) {
             vec1.pop_back();
             vec2.pop_back();
         }
+        EXPECT_CALL(*stub, CopyConstructor()).Times(1);
+        EXPECT_CALL(*stub, Die()).Times(1);
         vec1.shrink_to_fit();
         EXPECT_EQ(vec1, vec2);
+        EXPECT_EQ(vec1.capacity(), 1);
+        EXPECT_CALL(*stub, Die()).Times(2);
     }
 }
 

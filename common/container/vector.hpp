@@ -316,9 +316,10 @@ T& vector<T>::back() {
     return mvector_data.begin[mvector_data.used - 1];
 }
 
+// TOTEST
 template <typename T>
 const T& vector<T>::back() const {
-    return mvector_data.begin[mvector_data.used - 1];
+    return const_cast<vector<T>*>(this)->back();
 }
 
 template <typename T>
