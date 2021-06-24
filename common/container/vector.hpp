@@ -176,7 +176,7 @@ vector<T>::vector(const vector<T>& rhs) {
 
 template <typename T>
 vector<T>::vector(vector<T>&& rhs) {
-    *this = rhs;
+    *this = std::forward<vector<T>>(rhs);
 }
 
 template <typename T>
@@ -200,13 +200,11 @@ vector<T>& vector<T>::operator=(const vector<T>& rhs) {
 
 template <typename T>
 vector<T>& vector<T>::operator=(vector<T>&& rhs) {
-    mvector_data.begin = rhs.begin;
-    rhs.begin = nullptr;
-
-    mvector_data.used = rhs.mvector_data.used;
+    mvector_data = rhs.mvector_data;
+    rhs.mvector_data.begin = nullptr;
     rhs.mvector_data.used = 0;
-    mvector_data.storage = rhs.mvector_data.storage;
     rhs.mvector_data.storage = 0;
+    return *this;
 }
 
 template <typename T>
