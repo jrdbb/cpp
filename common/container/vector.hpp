@@ -308,7 +308,7 @@ T& vector<T>::front() {
 
 template <typename T>
 const T& vector<T>::front() const {
-    return mvector_data.begin[0];
+    return const_cast<vector<T>*>(this)->front();
 }
 
 template <typename T>
@@ -316,7 +316,6 @@ T& vector<T>::back() {
     return mvector_data.begin[mvector_data.used - 1];
 }
 
-// TOTEST
 template <typename T>
 const T& vector<T>::back() const {
     return const_cast<vector<T>*>(this)->back();
@@ -351,7 +350,8 @@ void vector<T>::push_back(T&& val) {
     if (mvector_data.used == mvector_data.storage) {
         reserve(mvector_data.used + 1);
     }
-    auto* ele = new (mvector_data.begin + mvector_data.used) T(std::move(val));
+    auto* ele =
+        new (mvector_data.begin + mvector_data.used) T(std::forward<T>(val));
     mvector_data.used++;
 }
 

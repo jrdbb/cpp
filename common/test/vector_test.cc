@@ -19,9 +19,10 @@ static std::unique_ptr<Stub> stub(new Stub);
 
 class TestObject {
    public:
-    TestObject() { mStub.NoParamConstructor(); }
-    TestObject(int i) : mValue(i) { mStub.IntParamConstructor(); }
-    TestObject(const TestObject& testObj) : mValue(testObj.mValue) {
+    TestObject() : mStub(*stub) { mStub.NoParamConstructor(); }
+    TestObject(int i) : mValue(i), mStub(*stub) { mStub.IntParamConstructor(); }
+    TestObject(const TestObject& testObj)
+        : mValue(testObj.mValue), mStub(testObj.mStub) {
         mStub.CopyConstructor();
     }
     TestObject(TestObject&& testObj) : mValue(testObj.mValue) {
@@ -30,6 +31,14 @@ class TestObject {
     }
     bool operator==(const TestObject& rhs) { return mValue == rhs.mValue; }
     bool operator!=(const TestObject& rhs) { return mValue != rhs.mValue; }
+    TestObject& operator=(const TestObject& x) {
+        mValue = x.mValue;
+        return *this;
+    }
+    TestObject& operator=(TestObject&& x) {
+        mValue = x.mValue;
+        return *this;
+    }
     // MOCK_METHOD(void, Die, ());
     ~TestObject() {
         // Die();
@@ -107,6 +116,34 @@ TYPED_TEST(VectorTest, CopyInit) {
 
 // TODO: MoveInit
 
+TYPED_TEST(VectorTest, Resize) {
+    {
+        EXPECT_CALL(*stub, NoParamConstructor()).Times(30);
+        TypeParam vecToSmaller(10), vecToLarger(10), vecChangeCap(10);
+
+        EXPECT_CALL(*stub, Die()).Times(5);
+        vecToSmaller.resize(5);
+
+        EXPECT_CALL(*stub, Die()).Times(5);
+        for (int i = 0; i < 5; ++i) {
+            vecToLarger.pop_back();
+        }
+
+        EXPECT_EQ(vecToLarger.size(), 5);
+        EXPECT_GE(vecToLarger.capacity(), 10);
+        EXPECT_CALL(*stub, NoParamConstructor()).Times(5);
+        vecToLarger.resize(10);
+
+        EXPECT_CALL(*stub, Die()).Times(10);
+        EXPECT_CALL(*stub, NoParamConstructor()).Times(10);
+        EXPECT_CALL(*stub, CopyConstructor()).Times(10);
+        vecChangeCap.resize(20);
+        EXPECT_EQ(vecChangeCap.size(), 20);
+
+        EXPECT_CALL(*stub, Die()).Times(35);
+    }
+}
+
 TYPED_TEST(VectorTest, Reserve) {
     {
         EXPECT_CALL(*stub, NoParamConstructor()).Times(10);
@@ -152,14 +189,20 @@ TYPED_TEST(VectorTest, FrontAndBack) {
          * so no empty test here
          */
         EXPECT_CALL(*stub, NoParamConstructor).Times(10);
-        TypeParam testvec(10);
+        TypeParam nonConstVec(10);
 
-        for (int i = 0; i < testvec.size(); ++i) {
-            testvec[i].mValue = i;
+        for (int i = 0; i < nonConstVec.size(); ++i) {
+            nonConstVec[i].mValue = i;
         }
-        EXPECT_EQ(testvec.front().mValue, 0);
-        EXPECT_EQ(testvec.back().mValue, 9);
-        EXPECT_CALL(*stub, Die()).Times(10);
+        EXPECT_EQ(nonConstVec.front().mValue, 0);
+        EXPECT_EQ(nonConstVec.back().mValue, 9);
+
+        EXPECT_CALL(*stub, CopyConstructor()).Times(10);
+        const TypeParam constVec{nonConstVec};
+        EXPECT_EQ(constVec.front().mValue, 0);
+        EXPECT_EQ(constVec.back().mValue, 9);
+
+        EXPECT_CALL(*stub, Die()).Times(20);
     }
 }
 
