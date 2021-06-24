@@ -11,7 +11,7 @@ class vector {
     explicit vector(size_t n);
     vector(size_t n, const T& val);
     vector(const vector<T>& x);
-    vector(vector&&);
+    vector(vector<T>&&);
     // vector (initializer_list<value_type> il);
 
     ~vector();

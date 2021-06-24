@@ -114,7 +114,23 @@ TYPED_TEST(VectorTest, CopyInit) {
     }
 }
 
-// TODO: MoveInit
+TYPED_TEST(VectorTest, MoveInit) {
+    {
+        EXPECT_CALL(*stub, NoParamConstructor()).Times(5);
+        TypeParam vec(5);
+        size_t oldCap = vec.capacity();
+        TypeParam moveVec(std::move(vec));
+
+        EXPECT_EQ(moveVec.size(), 5);
+        EXPECT_EQ(moveVec.capacity(), oldCap);
+        for (size_t i = 0; i < moveVec.size(); ++i) {
+            EXPECT_EQ(moveVec[i].mValue, 0);
+        }
+
+        EXPECT_TRUE(vec.empty());
+        EXPECT_CALL(*stub, Die()).Times(5);
+    }
+}
 
 TYPED_TEST(VectorTest, Resize) {
     {
