@@ -167,14 +167,15 @@ TYPED_TEST(VectorTest, ParamResize) {
         EXPECT_CALL(*stub, NoParamConstructor()).Times(10);
         TypeParam vecToLarger(10);
 
-        EXPECT_CALL(*stub, Die()).Times(5);
+        EXPECT_CALL(*stub, Die()).Times(AtLeast(5));
         for (int i = 0; i < 5; ++i) {
             vecToLarger.pop_back();
         }
 
         EXPECT_EQ(vecToLarger.size(), 5);
         EXPECT_GE(vecToLarger.capacity(), 10);
-        EXPECT_CALL(*stub, CopyConstructor()).Times(5);
+        // for std::vector<T> resize() has temporary value
+        EXPECT_CALL(*stub, CopyConstructor()).Times(AtLeast(5));
         vecToLarger.resize(10, testObj);
         EXPECT_EQ(vecToLarger.size(), 10);
         EXPECT_EQ(vecToLarger.capacity(), 10);
