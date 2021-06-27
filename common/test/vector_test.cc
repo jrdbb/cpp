@@ -328,4 +328,17 @@ TYPED_TEST(VectorTest, Swap) {
     }
 }
 
+TYPED_TEST(VectorTest, Begin) {
+    {
+        EXPECT_CALL(*stub, IntParamConstructor()).Times(1);
+        EXPECT_CALL(*stub, CopyConstructor()).Times(5);
+        EXPECT_CALL(*stub, Die()).Times(1);
+        TypeParam vec(5, 1);
+        for (auto& it : vec) {
+            EXPECT_EQ(it.mValue, 1);
+        }
+        EXPECT_CALL(*stub, Die()).Times(5);
+    }
+}
+
 }  // namespace cpp::common::test

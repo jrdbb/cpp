@@ -96,6 +96,29 @@ class vector {
     // iterator emplace (const_iterator position, Args&&... args);
     // template <class... Args>
     //   void emplace_back (Args&&... args);
+    class iterator : public std::iterator<std::input_iterator_tag, T> {
+        T* mPointer;
+
+       public:
+        explicit iterator(T* pointer) : mPointer(pointer) {}
+        iterator& operator++() {
+            mPointer++;
+            return *this;
+        }
+        iterator operator++(int) {
+            iterator retval = *this;
+            ++(*this);
+            return retval;
+        }
+        bool operator==(iterator other) const {
+            return mPointer == other.mPointer;
+        }
+        bool operator!=(iterator other) const { return !(*this == other); }
+        const T& operator*() const { return *mPointer; }
+        T& operator*() { return *mPointer; }
+    };
+    iterator begin() { return iterator(mvector_data.begin); }
+    iterator end() { return iterator(mvector_data.begin + mvector_data.used); }
 
    private:
     struct vector_data {
