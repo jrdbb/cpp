@@ -7,18 +7,19 @@ namespace cpp::common::container {
 template <typename T>
 class vector {
    public:
+    typedef T value_type;
     vector() = default;
     explicit vector(size_t n);
     vector(size_t n, const T& val);
     vector(const vector<T>& x);
     vector(vector<T>&&);
-    // vector (initializer_list<value_type> il);
+    vector(std::initializer_list<T> il);
 
     ~vector();
 
     vector& operator=(const vector& x);
     vector& operator=(vector&& x);
-    // vector& operator= (initializer_list<value_type> il);
+    vector& operator=(std::initializer_list<T> il);
 
     // capacity
     size_t size() const noexcept;
@@ -96,13 +97,19 @@ class vector {
     // iterator emplace (const_iterator position, Args&&... args);
     // template <class... Args>
     //   void emplace_back (Args&&... args);
-    class iterator : public std::iterator<std::input_iterator_tag, T> {
+    class iterator : public std::iterator<std::random_access_iterator_tag, T> {
         T* mPointer;
 
        public:
+        using it_tag = std::iterator<std::random_access_iterator_tag, T>;
+
         explicit iterator(T* pointer) : mPointer(pointer) {}
+        iterator& operator=(const iterator& rhs) {
+            mPointer = rhs.mPointer;
+            return *this;
+        }
         iterator& operator++() {
-            mPointer++;
+            ++mPointer;
             return *this;
         }
         iterator operator++(int) {
@@ -110,15 +117,149 @@ class vector {
             ++(*this);
             return retval;
         }
-        bool operator==(iterator other) const {
+        iterator& operator--() {
+            --mPointer;
+            return *this;
+        }
+        iterator operator--(int) {
+            iterator retval = *this;
+            --(*this);
+            return retval;
+        }
+        bool operator==(const iterator& other) const {
             return mPointer == other.mPointer;
         }
-        bool operator!=(iterator other) const { return !(*this == other); }
-        const T& operator*() const { return *mPointer; }
-        T& operator*() { return *mPointer; }
+        bool operator!=(const iterator& other) const {
+            return !(*this == other);
+        }
+        const typename it_tag::reference operator*() const { return *mPointer; }
+        typename it_tag::reference operator*() { return *mPointer; }
+        const typename it_tag::pointer operator->() const { return mPointer; }
+        typename it_tag::pointer operator->() { return mPointer; }
+        iterator operator+(typename it_tag::difference_type dist) {
+            return iterator(mPointer + dist);
+        }
+        iterator operator-(typename it_tag::difference_type dist) {
+            return iterator(mPointer - dist);
+        }
+        typename it_tag::difference_type operator-(const iterator& rhs) {
+            return mPointer - rhs.mPointer;
+        }
+        bool operator<(const iterator& rhs) const {
+            return mPointer < rhs.mPointer;
+        }
+        bool operator>(const iterator& rhs) const {
+            return mPointer > rhs.mPointer;
+        }
+        bool operator<=(const iterator& rhs) const {
+            return mPointer <= rhs.mPointer;
+        }
+        bool operator>=(const iterator& rhs) const {
+            return mPointer >= rhs.mPointer;
+        }
+        iterator& operator+=(typename it_tag::difference_type dist) {
+            mPointer += dist;
+            return *this;
+        }
+        iterator& operator-=(typename it_tag::difference_type dist) {
+            mPointer -= dist;
+            return *this;
+        }
+        const typename it_tag::reference operator[](
+            typename it_tag::difference_type dist) const {
+            return *(mPointer + dist);
+        }
+        typename it_tag::reference operator[](
+            typename it_tag::difference_type dist) {
+            return *(mPointer + dist);
+        }
+        void swap(iterator& rhs) { std::swap(mPointer, rhs.mPointer); }
+        friend iterator operator+(typename it_tag::difference_type dist,
+                                  const iterator& iter);
     };
+    class const_iterator
+        : public std::iterator<std::random_access_iterator_tag, const T> {
+        const T* mPointer;
+
+       public:
+        using it_tag = std::iterator<std::random_access_iterator_tag, const T>;
+
+        explicit const_iterator(T* pointer) : mPointer(pointer) {}
+        const_iterator& operator=(const const_iterator& rhs) {
+            mPointer = rhs.mPointer;
+            return *this;
+        }
+        const_iterator& operator++() {
+            ++mPointer;
+            return *this;
+        }
+        const_iterator operator++(int) {
+            const_iterator retval = *this;
+            ++(*this);
+            return retval;
+        }
+        const_iterator& operator--() {
+            --mPointer;
+            return *this;
+        }
+        const_iterator operator--(int) {
+            const_iterator retval = *this;
+            --(*this);
+            return retval;
+        }
+        bool operator==(const const_iterator& other) const {
+            return mPointer == other.mPointer;
+        }
+        bool operator!=(const const_iterator& other) const {
+            return !(*this == other);
+        }
+        typename it_tag::reference operator*() const { return *mPointer; }
+        typename it_tag::pointer operator->() const { return mPointer; }
+
+        const_iterator operator+(typename it_tag::difference_type dist) {
+            return const_iterator(mPointer + dist);
+        }
+        const_iterator operator-(typename it_tag::difference_type dist) {
+            return const_iterator(mPointer - dist);
+        }
+        typename it_tag::difference_type operator-(const const_iterator& rhs) {
+            return mPointer - rhs.mPointer;
+        }
+        bool operator<(const const_iterator& rhs) const {
+            return mPointer < rhs.mPointer;
+        }
+        bool operator>(const const_iterator& rhs) const {
+            return mPointer > rhs.mPointer;
+        }
+        bool operator<=(const const_iterator& rhs) const {
+            return mPointer <= rhs.mPointer;
+        }
+        bool operator>=(const const_iterator& rhs) const {
+            return mPointer >= rhs.mPointer;
+        }
+        const_iterator& operator+=(typename it_tag::difference_type dist) {
+            mPointer += dist;
+            return *this;
+        }
+        const_iterator& operator-=(typename it_tag::difference_type dist) {
+            mPointer -= dist;
+            return *this;
+        }
+        typename it_tag::reference operator[](
+            typename it_tag::difference_type dist) {
+            return *(mPointer + dist);
+        }
+        void swap(const_iterator& rhs) { std::swap(mPointer, rhs.mPointer); }
+        friend const_iterator operator+(typename it_tag::difference_type dist,
+                                        const const_iterator& iter);
+    };
+
     iterator begin() { return iterator(mvector_data.begin); }
+    const_iterator begin() const { return const_iterator(mvector_data.begin); }
     iterator end() { return iterator(mvector_data.begin + mvector_data.used); }
+    const_iterator end() const {
+        return const_iterator(mvector_data.begin + mvector_data.used);
+    }
 
    private:
     struct vector_data {
@@ -203,6 +344,14 @@ vector<T>::vector(vector<T>&& rhs) {
 }
 
 template <typename T>
+vector<T>::vector(std::initializer_list<T> il) {
+    reserve(il.size());
+    for (auto& ele : il) {
+        push_back(ele);
+    }
+}
+
+template <typename T>
 vector<T>::~vector() {}
 
 template <typename T>
@@ -227,6 +376,12 @@ vector<T>& vector<T>::operator=(vector<T>&& rhs) {
     rhs.mvector_data.begin = nullptr;
     rhs.mvector_data.used = 0;
     rhs.mvector_data.storage = 0;
+    return *this;
+}
+
+template <typename T>
+vector<T>& vector<T>::operator=(std::initializer_list<T> il) {
+    *this = vector<T>(il);
     return *this;
 }
 
@@ -396,5 +551,22 @@ void vector<T>::clear() noexcept {
     }
     mvector_data.used = 0;
 }
+
+template <typename T>
+typename vector<T>::iterator operator+(
+    typename vector<T>::iterator::difference_type dist,
+    const typename vector<T>::iterator& iter) {
+    return iter + dist;
+}
+
+template <typename T>
+typename vector<T>::const_iterator operator+(
+    typename vector<T>::const_iterator::difference_type dist,
+    const typename vector<T>::const_iterator& iter) {
+    return iter + dist;
+}
+
+template <>
+class vector<bool> {};
 
 }  // namespace cpp::common::container

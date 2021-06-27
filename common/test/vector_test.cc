@@ -15,7 +15,7 @@ struct Stub {
     MOCK_METHOD(void, Die, ());
 };
 
-static std::unique_ptr<Stub> stub(new Stub);
+static std::unique_ptr<Stub> stub(nullptr);
 
 class TestObject {
    public:
@@ -59,14 +59,22 @@ bool operator!=(const TestObject& lhs, const TestObject& rhs) {
 template <typename T>
 class VectorTest : public Test {
    protected:
-    void SetUp() override {}
-    void TearDown() override { stub.reset(new Stub); }
+    void SetUp() override { stub.reset(new Stub); }
+    void TearDown() override { stub.reset(); }
 };
 
 using VectorTypes =
     ::testing::Types<container::vector<TestObject>, std::vector<TestObject>>;
 
 TYPED_TEST_SUITE(VectorTest, VectorTypes);
+
+template <typename T>
+class VectorIntTest : public Test {};
+
+using VectorIntTypes =
+    ::testing::Types<container::vector<int>, std::vector<int>>;
+
+TYPED_TEST_SUITE(VectorIntTest, VectorIntTypes);
 
 TYPED_TEST(VectorTest, SizeInit) {
     {
@@ -328,7 +336,7 @@ TYPED_TEST(VectorTest, Swap) {
     }
 }
 
-TYPED_TEST(VectorTest, Begin) {
+TYPED_TEST(VectorTest, TraverseIterator) {
     {
         EXPECT_CALL(*stub, IntParamConstructor()).Times(1);
         EXPECT_CALL(*stub, CopyConstructor()).Times(5);
@@ -341,4 +349,30 @@ TYPED_TEST(VectorTest, Begin) {
     }
 }
 
+TYPED_TEST(VectorIntTest, IteratorDereferencePlus) {
+    TypeParam vec(5, 1);
+    auto iter = vec.begin();
+    *iter++;
+    EXPECT_EQ(vec[0], 1);
+    EXPECT_EQ(vec[1], 1);
+    EXPECT_NE(iter, vec.begin());
+}
+
+TYPED_TEST(VectorIntTest, IteratorSwap) {
+    TypeParam vec(2);
+    vec[0] = 1;
+    auto it1 = vec.begin();
+    auto it2 = it1 + 1;
+    swap(it1, it2);
+    EXPECT_EQ(vec[0], 1);
+    EXPECT_EQ(vec[1], 0);
+    EXPECT_EQ(*it2, 1);
+    EXPECT_EQ(*it1, 0);
+}
+
+TYPED_TEST(VectorIntTest, IteratorSort) {
+    TypeParam vec{3, 4, 1, 2, 5};
+    std::sort(vec.begin(), vec.end());
+    EXPECT_THAT(vec, ElementsAre(1, 2, 3, 4, 5));
+}
 }  // namespace cpp::common::test
