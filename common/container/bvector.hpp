@@ -1,5 +1,7 @@
 #pragma once
 #include <math.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <stdexcept>
 #include <vector>
@@ -219,7 +221,7 @@ class vector<bool> {
         }
         iterator& operator-=(typename it_tag::difference_type dist) {
             int poschange = floor((double(mOffset) - dist) / 8);
-            mPointer = mPointer - poschange;
+            mPointer = mPointer + poschange;
             mOffset = (mOffset - dist) % 8;
             mMask = 1 << mOffset;
             return *this;
@@ -246,8 +248,7 @@ class vector<bool> {
                    (mPointer == rhs.mPointer && mOffset >= rhs.mOffset);
         }
 
-        bit_reference operator[](
-            typename it_tag::difference_type dist) const {
+        bit_reference operator[](typename it_tag::difference_type dist) const {
             return *(*this + dist);
         }
 
@@ -255,92 +256,124 @@ class vector<bool> {
         friend iterator operator+(typename it_tag::difference_type dist,
                                   const iterator& iter);
     };
-    // class const_iterator
-    //     : public std::iterator<std::random_access_iterator_tag, const T> {
-    //     const T* mPointer;
+    class const_iterator
+        : public std::iterator<std::random_access_iterator_tag, const bool> {
+        char* mPointer;
+        size_t mOffset;
+        char mMask;
 
-    //    public:
-    //     using it_tag = std::iterator<std::random_access_iterator_tag, const
-    //     T>;
+       public:
+        using it_tag =
+            std::iterator<std::random_access_iterator_tag, const bool>;
 
-    //     explicit const_iterator(T* pointer) : mPointer(pointer) {}
-    //     const_iterator& operator=(const const_iterator& rhs) {
-    //         mPointer = rhs.mPointer;
-    //         return *this;
-    //     }
-    //     const_iterator& operator++() {
-    //         ++mPointer;
-    //         return *this;
-    //     }
-    //     const_iterator operator++(int) {
-    //         const_iterator retval = *this;
-    //         ++(*this);
-    //         return retval;
-    //     }
-    //     const_iterator& operator--() {
-    //         --mPointer;
-    //         return *this;
-    //     }
-    //     const_iterator operator--(int) {
-    //         const_iterator retval = *this;
-    //         --(*this);
-    //         return retval;
-    //     }
-    //     bool operator==(const const_iterator& other) const {
-    //         return mPointer == other.mPointer;
-    //     }
-    //     bool operator!=(const const_iterator& other) const {
-    //         return !(*this == other);
-    //     }
-    //     typename it_tag::reference operator*() const { return *mPointer; }
-    //     typename it_tag::pointer operator->() const { return mPointer; }
+        const_iterator(char* pointer, size_t offset)
+            : mPointer(pointer), mOffset(offset), mMask(1 << mOffset) {}
 
-    //     const_iterator operator+(typename it_tag::difference_type dist) {
-    //         return const_iterator(mPointer + dist);
-    //     }
-    //     const_iterator operator-(typename it_tag::difference_type dist) {
-    //         return const_iterator(mPointer - dist);
-    //     }
-    //     typename it_tag::difference_type operator-(const const_iterator& rhs)
-    //     {
-    //         return mPointer - rhs.mPointer;
-    //     }
-    //     bool operator<(const const_iterator& rhs) const {
-    //         return mPointer < rhs.mPointer;
-    //     }
-    //     bool operator>(const const_iterator& rhs) const {
-    //         return mPointer > rhs.mPointer;
-    //     }
-    //     bool operator<=(const const_iterator& rhs) const {
-    //         return mPointer <= rhs.mPointer;
-    //     }
-    //     bool operator>=(const const_iterator& rhs) const {
-    //         return mPointer >= rhs.mPointer;
-    //     }
-    //     const_iterator& operator+=(typename it_tag::difference_type dist) {
-    //         mPointer += dist;
-    //         return *this;
-    //     }
-    //     const_iterator& operator-=(typename it_tag::difference_type dist) {
-    //         mPointer -= dist;
-    //         return *this;
-    //     }
-    //     typename it_tag::reference operator[](
-    //         typename it_tag::difference_type dist) {
-    //         return *(mPointer + dist);
-    //     }
-    //     void swap(const_iterator& rhs) { std::swap(mPointer, rhs.mPointer); }
-    //     friend const_iterator operator+(typename it_tag::difference_type
-    //     dist,
-    //                                     const const_iterator& iter);
-    // };
+        const_iterator& operator=(const const_iterator& rhs) {
+            mPointer = rhs.mPointer;
+            mOffset = rhs.mOffset;
+            mMask = rhs.mMask;
+            return *this;
+        }
+        const_iterator& operator++() {
+            if (mOffset < 8) {
+                ++mOffset;
+                mMask <<= 1;
+            } else {
+                ++mPointer;
+                mOffset = 0;
+                mMask = 1;
+            }
+            return *this;
+        }
+        const_iterator operator++(int) {
+            const_iterator retval = *this;
+            ++(*this);
+            return retval;
+        }
+        const_iterator& operator--() {
+            if (mOffset > 0) {
+                --mOffset;
+                mMask >>= 1;
+            } else {
+                --mPointer;
+                mOffset = 7;
+                mMask = 0x1 << 7;
+            }
+            return *this;
+        }
+        const_iterator operator--(int) {
+            const_iterator retval = *this;
+            --(*this);
+            return retval;
+        }
+        bool operator==(const const_iterator& other) const {
+            return mPointer == other.mPointer && mOffset == other.mOffset &&
+                   mMask == other.mMask;
+        }
+        bool operator!=(const const_iterator& other) const {
+            return !(*this == other);
+        }
+        bit_reference operator*() { return bit_reference(mPointer, mMask); }
 
-    // iterator begin() { return iterator(mvector_data.begin); }
-    // const_iterator begin() const { return const_iterator(mvector_data.begin);
-    // } iterator end() { return iterator(mvector_data.begin +
-    // mvector_data.used); } const_iterator end() const {
-    //     return const_iterator(mvector_data.begin + mvector_data.used);
-    // }
+        const_iterator& operator+=(typename it_tag::difference_type dist) {
+            int poschange = floor((double(mOffset) + dist) / 8);
+            mPointer = mPointer + poschange;
+            mOffset = (mOffset + dist) % 8;
+            mMask = 1 << mOffset;
+            return *this;
+        }
+        const_iterator operator+(typename it_tag::difference_type dist) const {
+            const_iterator tmp = *this;
+            return tmp += dist;
+        }
+        const_iterator& operator-=(typename it_tag::difference_type dist) {
+            int poschange = floor((double(mOffset) - dist) / 8);
+            mPointer = mPointer + poschange;
+            mOffset = (mOffset - dist) % 8;
+            mMask = 1 << mOffset;
+            return *this;
+        }
+        const_iterator operator-(typename it_tag::difference_type dist) const {
+            const_iterator tmp = *this;
+            return tmp -= dist;
+        }
+        bool operator<(const const_iterator& rhs) const {
+            return (mPointer < rhs.mPointer) ||
+                   (mPointer == rhs.mPointer && mOffset < rhs.mOffset);
+        }
+        bool operator>(const const_iterator& rhs) const {
+            return (mPointer > rhs.mPointer) ||
+                   (mPointer == rhs.mPointer && mOffset > rhs.mOffset);
+        }
+        bool operator<=(const const_iterator& rhs) const {
+            return (mPointer < rhs.mPointer) ||
+                   (mPointer == rhs.mPointer && mOffset <= rhs.mOffset);
+        }
+        bool operator>=(const const_iterator& rhs) const {
+            return (mPointer > rhs.mPointer) ||
+                   (mPointer == rhs.mPointer && mOffset >= rhs.mOffset);
+        }
+        bit_reference operator[](typename it_tag::difference_type dist) const {
+            return *(*this + dist);
+        }
+        void swap(const_iterator& rhs) { std::swap(mPointer, rhs.mPointer); }
+        friend const_iterator operator+(typename it_tag::difference_type dist,
+                                        const const_iterator& iter);
+    };
+
+    iterator begin() { return iterator(mvector_data.begin, 0); }
+    const_iterator begin() const {
+        return const_iterator(mvector_data.begin, 0);
+    }
+    iterator end() {
+        return iterator(mvector_data.begin + mvector_data.used / 8,
+                        mvector_data.used % 8);
+    }
+    const_iterator end() const {
+        return const_iterator(mvector_data.begin + mvector_data.used / 8,
+                              mvector_data.used % 8);
+    }
 
    private:
     struct vector_data {
@@ -482,10 +515,9 @@ void vector<bool>::shrink_to_fit() {
     }
 }
 
-// template <typename T>
-// T& vector<T>::operator[](size_t n) {
-//     return mvector_data.begin[n];
-// }
+bit_reference vector<bool>::operator[](size_t n) {
+    return *iterator(mvector_data.begin, n);
+}
 
 // template <typename T>
 // const T& vector<T>::operator[](size_t n) const {
@@ -554,18 +586,15 @@ void vector<bool>::swap(vector<bool>& x) {
 
 void vector<bool>::clear() noexcept { mvector_data.used = 0; }
 
-// template <typename T>
-// typename vector<T>::iterator operator+(
-//     typename vector<T>::iterator::difference_type dist,
-//     const typename vector<T>::iterator& iter) {
-//     return iter + dist;
-// }
+vector<bool>::iterator operator+(vector<bool>::iterator::difference_type dist,
+                                 const vector<bool>::iterator& iter) {
+    return iter + dist;
+}
 
-// template <typename T>
-// typename vector<T>::const_iterator operator+(
-//     typename vector<T>::const_iterator::difference_type dist,
-//     const typename vector<T>::const_iterator& iter) {
-//     return iter + dist;
-// }
+vector<bool>::const_iterator operator+(
+    vector<bool>::const_iterator::difference_type dist,
+    const vector<bool>::const_iterator& iter) {
+    return iter + dist;
+}
 
 }  // namespace cpp::common::container

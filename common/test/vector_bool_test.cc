@@ -17,13 +17,13 @@ using VectorTypes =
 
 TYPED_TEST_SUITE(VectorBoolTest, VectorTypes);
 
-TYPED_TEST(VectorBoolTest, Bool) {
-    {
-        TypeParam vec(5, true);
-        for (const auto v : vec) {
-            EXPECT_EQ(v, true);
-        }
-    }
-}
+// TYPED_TEST(VectorBoolTest, Bool) {
+//     {
+//         TypeParam vec(5, true);
+//         for (const auto v : vec) {
+//             EXPECT_EQ(v, true);
+//         }
+//     }
+// }
 
 }  // namespace cpp::common::test
