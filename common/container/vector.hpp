@@ -509,7 +509,7 @@ const T* vector<T>::data() const noexcept {
 
 template <typename T>
 void vector<T>::assign(size_t n, const T& val) {
-    *this = vector_data(n, val);
+    *this = vector(n, val);
 }
 
 template <typename T>
@@ -565,8 +565,5 @@ typename vector<T>::const_iterator operator+(
     const typename vector<T>::const_iterator& iter) {
     return iter + dist;
 }
-
-template <>
-class vector<bool> {};
 
 }  // namespace cpp::common::container

@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <container/vector.hpp>
+#include <container/bvector.hpp>
 #include <vector>
 
 namespace cpp::common::test {
@@ -13,7 +13,7 @@ class VectorBoolTest : public Test {
 };
 
 using VectorTypes =
-    ::testing::Types</*container::vector<bool>,*/ std::vector<bool>>;
+    ::testing::Types<container::vector<bool>, std::vector<bool>>;
 
 TYPED_TEST_SUITE(VectorBoolTest, VectorTypes);
 
