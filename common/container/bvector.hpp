@@ -160,7 +160,9 @@ class vector<bool> {
         using it_tag = std::iterator<std::random_access_iterator_tag, bool>;
 
         iterator(char* pointer, size_t offset)
-            : mPointer(pointer), mOffset(offset), mMask(1 << mOffset) {}
+            : mPointer(pointer + offset / 8),
+              mOffset(offset % 8),
+              mMask(1 << mOffset) {}
 
         iterator& operator=(const iterator& rhs) {
             mPointer = rhs.mPointer;
@@ -267,7 +269,9 @@ class vector<bool> {
             std::iterator<std::random_access_iterator_tag, const bool>;
 
         const_iterator(char* pointer, size_t offset)
-            : mPointer(pointer), mOffset(offset), mMask(1 << mOffset) {}
+            : mPointer(pointer + offset / 8),
+              mOffset(offset % 8),
+              mMask(1 << mOffset) {}
 
         const_iterator& operator=(const const_iterator& rhs) {
             mPointer = rhs.mPointer;
@@ -401,31 +405,13 @@ static size_t bool_calculate_storage(size_t size) {
     return storage;
 }
 
-// template <typename T>
-// bool operator==(const vector<T>& lhs, const vector<T>& rhs) {
-//     if (lhs.size() != rhs.size()) {
-//         return false;
-//     }
-//     for (size_t i = 0; i < lhs.size(); ++i) {
-//         if (lhs[i] != rhs[i]) {
-//             return false;
-//         }
-//     }
-//     return true;
-// }
-
-// template <typename T>
-// bool operator!=(const vector<T>& lhs, const vector<T>& rhs) {
-//     return !(lhs == rhs);
-// }
-
 vector<bool>::vector(size_t n) : vector(n, false) {}
 
 vector<bool>::vector(size_t n, const bool& val) {
     size_t bytenum = ceil(double(n) / 8);
     mvector_data.begin = (char*)malloc(bytenum);
     if (val) {
-        memset(mvector_data.begin, 1 << 8, bytenum);
+        memset(mvector_data.begin, 0xFF, bytenum);
     } else {
         memset(mvector_data.begin, 0, bytenum);
     }
@@ -439,13 +425,12 @@ vector<bool>::vector(vector<bool>&& rhs) {
     *this = std::forward<vector<bool>>(rhs);
 }
 
-// template <typename T>
-// vector<T>::vector(std::initializer_list<T> il) {
-//     reserve(il.size());
-//     for (auto& ele : il) {
-//         push_back(ele);
-//     }
-// }
+vector<bool>::vector(std::initializer_list<bool> il) {
+    reserve(il.size());
+    for (auto& ele : il) {
+        push_back(ele);
+    }
+}
 
 vector<bool>::~vector() {}
 
@@ -519,46 +504,31 @@ bit_reference vector<bool>::operator[](size_t n) {
     return *iterator(mvector_data.begin, n);
 }
 
-// template <typename T>
-// const T& vector<T>::operator[](size_t n) const {
-//     return mvector_data.begin[n];
-// }
+bool vector<bool>::operator[](size_t n) const {
+    return *const_iterator(mvector_data.begin, n);
+}
 
-// template <typename T>
-// T& vector<T>::at(size_t n) {
-//     if (n < 0 || n >= mvector_data.used) {
-//         throw std::out_of_range(".at(): Invalid index!");
-//     }
-//     return mvector_data.begin[n];
-// }
+bit_reference vector<bool>::at(size_t n) {
+    if (n < 0 || n >= mvector_data.used) {
+        throw std::out_of_range(".at(): Invalid index!");
+    }
+    return (*this)[n];
+}
 
-// template <typename T>
-// const T& vector<T>::at(size_t n) const {
-//     if (n < 0 || n >= mvector_data.used) {
-//         throw std::out_of_range(".at(): Invalid index!");
-//     }
-//     return mvector_data.begin[n];
-// }
+bool vector<bool>::at(size_t n) const {
+    if (n < 0 || n >= mvector_data.used) {
+        throw std::out_of_range(".at(): Invalid index!");
+    }
+    return (*this)[n];
+}
 
-// template <typename T>
-// T& vector<T>::front() {
-//     return mvector_data.begin[0];
-// }
+bit_reference vector<bool>::front() { return *begin(); }
 
-// template <typename T>
-// const T& vector<T>::front() const {
-//     return const_cast<vector<T>*>(this)->front();
-// }
+bool vector<bool>::front() const { return *begin(); }
 
-// template <typename T>
-// T& vector<T>::back() {
-//     return mvector_data.begin[mvector_data.used - 1];
-// }
+bit_reference vector<bool>::back() { return *(end() - 1); }
 
-// template <typename T>
-// const T& vector<T>::back() const {
-//     return const_cast<vector<T>*>(this)->back();
-// }
+bool vector<bool>::back() const { return *(end() - 1); }
 
 void vector<bool>::assign(size_t n, const bool& val) { *this = vector(n, val); }
 
