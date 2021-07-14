@@ -7,6 +7,7 @@
 namespace cpp::common::test {
 using namespace testing;
 
+namespace {
 struct Stub {
     MOCK_METHOD(void, NoParamConstructor, ());
     MOCK_METHOD(void, IntParamConstructor, ());
@@ -59,7 +60,7 @@ bool operator!=(const TestObject& lhs, const TestObject& rhs) {
 template <typename T>
 class VectorTest : public Test {
    protected:
-    void SetUp() override { stub.reset(new Stub); }
+    void SetUp() override { stub.reset(new Stub()); }
     void TearDown() override { stub.reset(); }
 };
 
@@ -75,7 +76,7 @@ using VectorIntTypes =
     ::testing::Types<container::vector<int>, std::vector<int>>;
 
 TYPED_TEST_SUITE(VectorIntTest, VectorIntTypes);
-
+}  // namespace
 TYPED_TEST(VectorTest, SizeInit) {
     {
         EXPECT_CALL(*stub, NoParamConstructor()).Times(5);

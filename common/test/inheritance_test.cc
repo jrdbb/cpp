@@ -8,6 +8,7 @@
 namespace cpp::common::test {
 using namespace testing;
 
+namespace {
 class InheritanceTest : public Test {
    public:
     InheritanceTest() = default;
@@ -30,6 +31,7 @@ class InheritanceTest : public Test {
         }
     }
 };
+}  // namespace
 
 TEST_F(InheritanceTest, HowManyTimesIsConstructorInvoked) {
     CaptureStdout();

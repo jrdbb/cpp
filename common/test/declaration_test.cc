@@ -8,6 +8,7 @@
 namespace cpp::common::test {
 using namespace testing;
 
+namespace {
 // ref
 struct TestObject {
     void refFunc() & { OnLValue(); }
@@ -23,6 +24,7 @@ class DeclarationTest : public Test {
 
     TestObject mTestObj;
 };
+}  // namespace
 
 TEST_F(DeclarationTest, RefSpecifier) {
     EXPECT_CALL(mTestObj, OnLValue());
