@@ -54,13 +54,31 @@ class VariantTest : public Test {
 };
 
 using VariantTypes =
-    ::testing::Types<variant<TestObject>, std::variant<TestObject>>;
+    ::testing::Types<variant<TestObject, int>, std::variant<TestObject, int>>;
 
 TYPED_TEST_SUITE(VariantTest, VariantTypes);
 }  // namespace
 
+TYPED_TEST(VariantTest, SizeTest) {
+    EXPECT_EQ(sizeof(TypeParam), sizeof(TestObject) + sizeof(size_t));
+}
+
 TYPED_TEST(VariantTest, Init) {
-    TypeParam v(TestObject{});
+    {
+        EXPECT_CALL(*stub, NoParamConstructor());
+        EXPECT_CALL(*stub, Die()).Times(2);
+        TypeParam v(TestObject{});
+    }
+}
+
+TYPED_TEST(VariantTest, Assignment) {
+    {
+        EXPECT_CALL(*stub, NoParamConstructor());
+        EXPECT_CALL(*stub, Die()).Times(1);
+        TypeParam v;
+
+        v = 2;  // ?
+    }
 }
 
 }  // namespace cpp::common::test
