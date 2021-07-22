@@ -22,7 +22,7 @@ static std::unique_ptr<Stub> stub(nullptr);
 class TestObject {
    public:
     TestObject() : mStub(*stub) { mStub.NoParamConstructor(); }
-    TestObject(int i) : mValue(i), mStub(*stub) { mStub.IntParamConstructor(); }
+    explicit TestObject(int i) : mValue(i), mStub(*stub) { mStub.IntParamConstructor(); }
     TestObject(const TestObject& testObj)
         : mValue(testObj.mValue), mStub(testObj.mStub) {
         mStub.CopyConstructor();
@@ -74,10 +74,10 @@ TYPED_TEST(VariantTest, Init) {
 TYPED_TEST(VariantTest, Assignment) {
     {
         EXPECT_CALL(*stub, NoParamConstructor());
-        EXPECT_CALL(*stub, Die()).Times(1);
+        EXPECT_CALL(*stub, Die()).Times(2);
         TypeParam v;
 
-        v = 2;  // ?
+        v = TestObject(2);
     }
 }
 
