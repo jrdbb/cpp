@@ -22,7 +22,9 @@ static std::unique_ptr<Stub> stub(nullptr);
 class TestObject {
    public:
     TestObject() : mStub(*stub) { mStub.NoParamConstructor(); }
-    explicit TestObject(int i) : mValue(i), mStub(*stub) { mStub.IntParamConstructor(); }
+    explicit TestObject(int i) : mValue(i), mStub(*stub) {
+        mStub.IntParamConstructor();
+    }
     TestObject(const TestObject& testObj)
         : mValue(testObj.mValue), mStub(testObj.mStub) {
         mStub.CopyConstructor();
