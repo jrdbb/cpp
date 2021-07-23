@@ -52,33 +52,26 @@ class variant {
         new (&mData) T_0();
     };
     variant(const variant& rhs) { *this = rhs; };
-    variant(variant&& rhs) {
-        if (rhs.mTypeID == 0) {
-            destroy();
-        } else {
-            _traits::move(mTypeID, &rhs.mData, &mData);
-            rhs.mTypeID = 0;
-        }
-        return *this;
-    };
+    variant(variant&& rhs) { *this = std::move(rhs); };
     variant& operator=(const variant& rhs) {
-        if (rhs.mTypeID == 0) {
-            destroy();
-        } else {
+        try_destory();
+        mTypeID = rhs.mTypeID;
+        if (mTypeID != 0) {
             _traits::copy(mTypeID, &rhs.mData, &mData);
         }
         return *this;
     };
 
     variant& operator=(variant&& rhs) {
-        destroy();
+        try_destory();
         mTypeID = rhs.mTypeID;
         if (mTypeID != 0) {
             _traits::move(mTypeID, &rhs.mData, &mData);
             rhs.mTypeID = 0;
         }
+        return *this;
     };
-    ~variant() { destroy(); };
+    ~variant() { try_destory(); };
 
     using _traits = variant_traits<T_0, Ts...>;
 
@@ -88,20 +81,19 @@ class variant {
         mTypeID = typeid(T).hash_code();
         new (&mData) T(std::forward<T>(t));
     }
+
     template <typename T,
               typename = std::enable_if_t<_traits::template contains<T>>>
     variant& operator=(const T& t) {
-        if (mTypeID == typeid(T).hash_code()) {
-            *(T*)(&mData) = t;
-        } else {
-            destroy();
-            *(T*)(&mData) = t;
+        if (mTypeID != typeid(T).hash_code()) {
+            try_destory();
         }
+        *(T*)(&mData) = t;
         return *this;
     }
 
    private:
-    void destroy() {
+    void try_destory() {
         if (mTypeID != 0) {
             _traits::destroy(mTypeID, &mData);
             mTypeID = 0;
