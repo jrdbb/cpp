@@ -25,6 +25,7 @@ jobs:
 
     - name: Set up dependencies
       run: |
+        sudo apt update
         sudo apt install -y libboost-all-dev
 
     - name: Create Build Environment

@@ -1,0 +1,1 @@
+project(cpp17_variant)
