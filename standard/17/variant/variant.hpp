@@ -10,7 +10,7 @@ struct variant_traits {
     static constexpr bool contains = (std::is_same_v<Tx, T> ||
                                       (std::is_same_v<Tx, Ts> || ...));
 
-    inline static void destroy(size_t id, void* data) {
+    inline static void destroy(std::size_t id, void* data) {
         if (id == typeid(T).hash_code())
             reinterpret_cast<T*>(data)->~T();
         else if constexpr (sizeof...(Ts) == 0)
@@ -19,7 +19,7 @@ struct variant_traits {
             variant_traits<Ts...>::destroy(id, data);
     }
 
-    inline static void move(size_t old_t, void* old_v, void* new_v) {
+    inline static void move(std::size_t old_t, void* old_v, void* new_v) {
         if (old_t == typeid(T).hash_code())
             new (new_v) T(std::move(*reinterpret_cast<T*>(old_v)));
         else if constexpr (sizeof...(Ts) == 0)
@@ -28,13 +28,22 @@ struct variant_traits {
             variant_traits<Ts...>::move(old_t, old_v, new_v);
     }
 
-    inline static void copy(size_t old_t, const void* old_v, void* new_v) {
+    inline static void copy(std::size_t old_t, const void* old_v, void* new_v) {
         if (old_t == typeid(T).hash_code())
             new (new_v) T(*reinterpret_cast<const T*>(old_v));
         else if constexpr (sizeof...(Ts) == 0)
             throw std::runtime_error("Unexpected");
         else
             variant_traits<Ts...>::copy(old_t, old_v, new_v);
+    }
+
+    inline static std::size_t index(std::size_t id, std::size_t i = 0) {
+        if (id == typeid(T).hash_code())
+            return i;
+        else if constexpr (sizeof...(Ts) == 0)
+            throw std::runtime_error("Unexpected");
+        else
+            return variant_traits<Ts...>::index(id, i + 1);
     }
 };
 
@@ -98,8 +107,7 @@ class variant {
         if (valueless_by_exception()) {
             return -1;
         }
-        // TODO
-        return 0;
+        return _traits::index(mTypeID);
     }
     constexpr bool valueless_by_exception() const { return mTypeID == 0; }
 
@@ -143,14 +151,15 @@ class variant {
             mTypeID = 0;
         }
     }
-    static const size_t data_size = std::max({sizeof(T_0), sizeof(Ts)...});
-    static const size_t data_align = std::max({alignof(T_0), alignof(Ts)...});
+    static const std::size_t data_size = std::max({sizeof(T_0), sizeof(Ts)...});
+    static const std::size_t data_align =
+        std::max({alignof(T_0), alignof(Ts)...});
 
     using data_t = typename std::aligned_storage<data_size, data_align>::type;
 
     void reset() { mTypeID = 0; }
 
-    size_t mTypeID = 0;
+    std::size_t mTypeID = 0;
     data_t mData;
 };
 
@@ -164,7 +173,7 @@ struct variant_size {};
 
 template <class... Types>
 struct variant_size<cpp::std17::variant<Types...>> {
-    inline static constexpr size_t value = sizeof...(Types);
+    inline static constexpr std::size_t value = sizeof...(Types);
 };
 
 // get helper

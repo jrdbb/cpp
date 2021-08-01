@@ -132,6 +132,13 @@ TYPED_TEST(VariantTest, Get) {
     }
 }
 
+TYPED_TEST(VariantTest, Index) {
+    {
+        TypeParam v(2);
+        EXPECT_EQ(v.index(), 1);
+    }
+}
+
 // TYPED_TEST(VariantTest, Visit) {
 //     {
 //         TypeParam v(2);
