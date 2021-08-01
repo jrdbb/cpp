@@ -49,8 +49,8 @@ struct variant_traits {
 
 template <std::size_t I, typename T, typename... Ts>
 struct variant_index {
-    using require = std::enable_if_t<sizeof...(Ts) >= I>;
-    using type = typename variant_index<I - 1, Ts...>::type;
+    using type = std::enable_if_t<sizeof...(Ts) >= I,
+                                  typename variant_index<I - 1, Ts...>::type>;
 };
 
 template <typename T, typename... Ts>
