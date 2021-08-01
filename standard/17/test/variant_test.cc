@@ -43,10 +43,16 @@ class TestObject {
         mValue = x.mValue;
         return *this;
     }
+    friend std::ostream& operator<<(std::ostream& os, const TestObject&);
     ~TestObject() { mStub.Die(); }
     int mValue = 0;
     Stub& mStub = *stub;
 };
+
+std::ostream& operator<<(std::ostream& os, const TestObject& t) {
+    os << t.mValue;
+    return os;
+}
 
 template <typename T>
 class VariantTest : public Test {
@@ -77,10 +83,60 @@ TYPED_TEST(VariantTest, Assignment) {
     {
         EXPECT_CALL(*stub, NoParamConstructor());
         EXPECT_CALL(*stub, Die()).Times(2);
+        // default ctor 1st type
         TypeParam v;
 
         v = TestObject(2);
     }
 }
+
+TYPED_TEST(VariantTest, Get) {
+    {
+        TypeParam v(2);
+
+        EXPECT_TRUE((std::is_same_v<decltype(std::get<int>(v)), int&>));
+        EXPECT_TRUE((std::is_same_v<decltype(std::get<1>(v)), int&>));
+
+        EXPECT_EQ(std::get<int>(v), 2);
+        EXPECT_EQ(std::get<1>(v), 2);
+
+        try {
+            std::get<TestObject>(v);
+            FAIL() << "Expected exception";
+        } catch (std::runtime_error const& err) {
+        } catch (std::bad_variant_access const& err) {
+        }
+
+        // rvalue
+        EXPECT_TRUE(
+            (std::is_same_v<decltype(std::get<int>(std::move(v))), int&&>));
+        EXPECT_TRUE(
+            (std::is_same_v<decltype(std::get<1>(std::move(v))), int&&>));
+    }
+
+    {
+        const TypeParam v(2);
+
+        EXPECT_TRUE((std::is_same_v<decltype(std::get<int>(v)), const int&>));
+        EXPECT_TRUE((std::is_same_v<decltype(std::get<1>(v)), const int&>));
+
+        EXPECT_EQ(std::get<int>(v), 2);
+        EXPECT_EQ(std::get<1>(v), 2);
+
+        try {
+            std::get<TestObject>(v);
+            FAIL() << "Expected exception";
+        } catch (std::runtime_error const& err) {
+        } catch (std::bad_variant_access const& err) {
+        }
+    }
+}
+
+// TYPED_TEST(VariantTest, Visit) {
+//     {
+//         TypeParam v(2);
+//         std::visit([](auto&& arg) { std::cout << arg; }, v);
+//     }
+// }
 
 }  // namespace cpp::common::test

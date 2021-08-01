@@ -1,8 +1,6 @@
 #pragma once
 #include <algorithm>
 
-namespace cpp::std17 {
-
 namespace {
 
 template <typename T, typename... Ts>
@@ -40,7 +38,20 @@ struct variant_traits {
     }
 };
 
+template <std::size_t I, typename T, typename... Ts>
+struct variant_index {
+    using require = std::enable_if_t<sizeof...(Ts) >= I>;
+    using type = typename variant_index<I - 1, Ts...>::type;
+};
+
+template <typename T, typename... Ts>
+struct variant_index<0, T, Ts...> {
+    using type = T;
+};
+
 }  // namespace
+
+namespace cpp::std17 {
 
 template <typename T_0, typename... Ts>
 class variant {
@@ -82,6 +93,17 @@ class variant {
         new (&mData) T(std::forward<T>(t));
     }
 
+    // observers
+    constexpr std::size_t index() const {
+        if (valueless_by_exception()) {
+            return -1;
+        }
+        // TODO
+        return 0;
+    }
+    constexpr bool valueless_by_exception() const { return mTypeID == 0; }
+
+    // assignment
     template <typename T,
               typename = std::enable_if_t<_traits::template contains<T>>>
     variant& operator=(const T& t) {
@@ -91,6 +113,28 @@ class variant {
         *(T*)(&mData) = t;
         return *this;
     }
+
+    template <std::size_t I, class... Types>
+    friend constexpr typename variant_index<I, Types...>::type& std::get(
+        variant<Types...>& v);
+    template <std::size_t I, class... Types>
+    friend constexpr typename variant_index<I, Types...>::type&& std::get(
+        variant<Types...>&& v);
+    template <std::size_t I, class... Types>
+    friend constexpr const typename variant_index<I, Types...>::type& std::get(
+        const variant<Types...>& v);
+    template <std::size_t I, class... Types>
+    friend constexpr const typename variant_index<I, Types...>::type&& std::get(
+        const variant<Types...>&& v);
+
+    template <class T, class... Types>
+    friend constexpr T& std::get(variant<Types...>& v);
+    template <class T, class... Types>
+    friend constexpr T&& std::get(variant<Types...>&& v);
+    template <class T, class... Types>
+    friend constexpr const T& std::get(const variant<Types...>& v);
+    template <class T, class... Types>
+    friend constexpr const T&& std::get(const variant<Types...>&& v);
 
    private:
     void try_destory() {
@@ -111,3 +155,73 @@ class variant {
 };
 
 }  // namespace cpp::std17
+
+namespace std {
+
+// variant size
+template <class variant>
+struct variant_size {};
+
+template <class... Types>
+struct variant_size<cpp::std17::variant<Types...>> {
+    inline static constexpr size_t value = sizeof...(Types);
+};
+
+// get helper
+template <class T, class... Types>
+constexpr T& get(cpp::std17::variant<Types...>& v) {
+    if (v.mTypeID == typeid(T).hash_code()) {
+        return (T&)v.mData;
+    }
+    throw std::runtime_error("");
+}
+
+template <class T, class... Types>
+constexpr T&& get(cpp::std17::variant<Types...>&& v) {
+    if (v.mTypeID == typeid(T).hash_code()) {
+        return (T &&) v.mData;
+    }
+    throw std::runtime_error("");
+}
+
+template <class T, class... Types>
+constexpr const T& get(const cpp::std17::variant<Types...>& v) {
+    if (v.mTypeID == typeid(T).hash_code()) {
+        return (const T&&)v.mData;
+    }
+    throw std::runtime_error("");
+}
+
+template <class T, class... Types>
+constexpr const T&& get(const cpp::std17::variant<Types...>&& v) {
+    if (v.mTypeID == typeid(T).hash_code()) {
+        return (const T&&)v.mData;
+    }
+    throw std::runtime_error("");
+}
+
+template <std::size_t I, class... Types>
+constexpr typename variant_index<I, Types...>::type& get(
+    cpp::std17::variant<Types...>& v) {
+    return get<typename variant_index<I, Types...>::type>(v);
+}
+
+template <std::size_t I, class... Types>
+constexpr typename variant_index<I, Types...>::type&& get(
+    cpp::std17::variant<Types...>&& v) {
+    return get<typename variant_index<I, Types...>::type>(std::move(v));
+}
+
+template <std::size_t I, class... Types>
+constexpr const typename variant_index<I, Types...>::type& get(
+    const cpp::std17::variant<Types...>& v) {
+    return get<typename variant_index<I, Types...>::type>(v);
+}
+
+template <std::size_t I, class... Types>
+constexpr const typename variant_index<I, Types...>::type&& get(
+    const cpp::std17::variant<Types...>&& v) {
+    return get<typename variant_index<I, Types...>::type>(std::move(v));
+}
+
+}  // namespace std
