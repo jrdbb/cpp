@@ -6,6 +6,7 @@ add_executable(${PROJECT_NAME} ${TEST_SRCS})
 target_link_libraries(${PROJECT_NAME} 
     cpp_common
     cpp_common_inheritance
+    cpp_common_template
     gmock
     gtest
     )
