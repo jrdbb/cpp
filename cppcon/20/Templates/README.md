@@ -4,7 +4,7 @@
 
 Generic programming is a method to implement algorithms and data structures in the most general sensible way.
 
-Generic programming helps us to reduce redundancy and programming effort, while it increases reusability and flexibility
+Generic programming helps us to reduce redundancy and programming effort, while it increases reusability and flexibility
 
 ## Template Param
 
@@ -22,7 +22,7 @@ they must be specified explicitly.
 
 ## Class templates
 
-* Most rules of function templates also apply to class templates.
+* Most rules of function templates also apply to class templates.
 * Methods can be implemented inside the class or outside.
 * Methods implemented outside the class require the template­head before the method as in the class.
 * Each instantiation of a class creates a new type.
@@ -44,7 +44,7 @@ are not automatically available.
 
 ## Thinking in types
 
-* We usually think in values as they are computed during run­time.
+* We usually think in values as they are computed during run­time.
 * Types are known at compile­time.
 
 ## Variadic templates
